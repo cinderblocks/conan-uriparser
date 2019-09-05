@@ -1,9 +1,10 @@
 from conans import ConanFile, CMake, tools
+import os
 
 
 class UriparserConan(ConanFile):
     name = "uriparser"
-    version = "0.9.0"
+    version = "0.9.3"
     license = "BSD"
     author = "Cinder Biscuits <cinder@cinderblocks.biz>"
     url = "https://github.com/cinderblocks/conan-uriparser"
@@ -15,19 +16,16 @@ class UriparserConan(ConanFile):
     generators = "cmake"
 
     def source(self):
-        self.run("git clone https://github.com/cinderblocks/uriparser.git")
-        self.run("cd uriparser && git checkout master")
-        # This small hack might be useful to guarantee proper /MT /MD linkage
-        # in MSVC if the packaged project doesn't have variables to set it
-        # properly
-        tools.replace_in_file("uriparser/CMakeLists.txt", "project(UriParser C)",
-                              '''project(UriParser C)
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()''')
+        checksum = ""
+        source_url = "https://github.com/uriparser/uriparser/releases/download/uriparser-0.9.3/uriparser-0.9.3.zip" 
+        tools.get(source_url, sha256=checksum)
 
     def build(self):
         cmake = CMake(self)
-        cmake.configure(source_folder="uriparser")
+        cmake.definitions["URIPARSER_BUILD_TESTS"] = False
+        cmake.definitions["URIPARSER_BUILD_DOCS"] = False
+        cmake.definitions["URIPARSER_BUILD_TOOLS"] = False
+        cmake.configure(source_folder="uriparser-%s" % self.version)
         cmake.build()
 
         # Explicit way:
@@ -36,12 +34,8 @@ conan_basic_setup()''')
         # self.run("cmake --build . %s" % cmake.build_config)
 
     def package(self):
-        self.copy("*.h", dst="include", src="uriparser/include")
-        self.copy("*uriparser.lib", dst="lib", keep_path=False)
-        self.copy("*.dll", dst="bin", keep_path=False)
-        self.copy("*.so", dst="lib", keep_path=False)
-        self.copy("*.dylib", dst="lib", keep_path=False)
-        self.copy("*.a", dst="lib", keep_path=False)
+        cmake = CMake(self)
+        cmake.install()
 
     def package_info(self):
         self.cpp_info.libs = ["uriparser"]
