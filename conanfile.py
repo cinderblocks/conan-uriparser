@@ -16,7 +16,7 @@ class UriparserConan(ConanFile):
     generators = "cmake"
 
     def source(self):
-        checksum = ""
+        checksum = "6f7f93543d7fd0e4a1789a0c8eb3971726f4e9c7f4f376c3f260a0e5a337631b"
         source_url = "https://github.com/uriparser/uriparser/releases/download/uriparser-0.9.3/uriparser-0.9.3.zip" 
         tools.get(source_url, sha256=checksum)
 
